@@ -6,6 +6,9 @@ We have worked on the 'Improved Adult Dataset' and wanted to study especially th
 This project started as part of a FU Berlin Softwareproject in the summer semester 2022.
 
 Authors:
+
 Jonas Schäfer
+
 Marius Wawerek
+
 Tolga Yurtseven
