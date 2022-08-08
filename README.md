@@ -3,7 +3,9 @@
 In this project we have created an training framework, an plotting function for our datasets and an visualization framework for evaluating different fairness metrics. 
 
 The developed training framework can train machine models on the ACIncome Task.
+
 The developed visualization framework can dynamically generate plots from given parameters by displaying related data from metric files. 
+
 Furthermore, two dashboards are created.
 One serves as an interface for the training framework and allows the user to generate new data from certain predefined options.
 The other one serves as an interface for the visualization framework and allows the user to easily explore our collected metrics.
