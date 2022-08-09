@@ -8,14 +8,15 @@ Original file is located at
 
 # 🕹️ **Grid Training Notebook**
 
-In this notebook, a training framework is developed which can train machine models on the ACIncome Task.
+**In this notebook, a training framework is developed which can train machine models on the ACIncome Task.**
 
+**The focus of this work is experimenting with the influence context has on fairness (in an machine learning setting).**
 
+<br></br>
+e.g. Does a model trained on data from 2014 work better than a model trained on data from 2017 when predicting data from 2018
+<br></br>
 
-
-Furthermore, a dashboard is created which serves as an interface for the framework and allows the user to easily explore our collected metrics.
-
-The purpose of this notebook is to allow students and researchers of AI fairness to explore how changes in temporal and/or spatial context can affect the fairness and performance of a model, as measured by various metrics. Recent research has shown that the interpretation of the fairness of classification models and datasets drastically depends on such context.
+With this framework you can generate and evaluate new data.
 
 ---
 ##⚙️ Setup Grid Training V2
@@ -346,16 +347,13 @@ https://aif360.readthedocs.io/en/stable/modules/generated/aif360.algorithms.inpr
 
 from aif360.algorithms.inprocessing.adversarial_debiasing import AdversarialDebiasing
 
-"""**Experience**  
-The AdversialDebiasing algorithm has the option to learn a classifier with or without debiasing by setting the debias paramete to true or false which we used to compare the results.
-We 
-The run time of the model w
-(Meta fair-> ~1,5 sec pro 10k
-Adversial Debiasing -> ~15,1 Sec pro 10k
-Prejudice Remover-> ~16,6 sec pro 10k 
-- data set
-- speed 
-- besonderheite
+"""**Experience with the Model**
+
+The AdversialDebiasing algorithm has the option to learn a classifier with or without debiasing by setting the debias parameter to true or false, we used option to compare our results.  
+We got some trouble with the model when we tried to include it into our pipeline.  
+It does not run on all our data and we could not manage to get it running perfectly.  
+To fix this issue we would needed to deep dive into the code but we decided to not do that.  
+We had already had full working models and because of our limited time frame we prioritized other tasks.
 
 ##### MetafairClassifier
 
@@ -379,7 +377,16 @@ https://aif360.readthedocs.io/en/stable/modules/generated/aif360.algorithms.inpr
 
 from aif360.algorithms.inprocessing.meta_fair_classifier import MetaFairClassifier
 
-"""- ist nur auf
+"""**Experience with the Model**
+
+The MetafairClassifier is working on all our datasets and was our fastes running model.
+
+Our calculated running speeds:  
+Meta fair-> **~1,5** sec pro 10k  
+Adversial Debiasing -> **~15,1** Sec pro 10k  
+Prejudice Remover-> **~16,6** sec pro 10k   
+
+This fast running time of the model helped us a lot and saved us time because we used the model always as main model for testing.
 
 ##### PrejudiceRemover
 
@@ -402,7 +409,15 @@ https://aif360.readthedocs.io/en/stable/modules/generated/aif360.algorithms.inpr
 
 from aif360.algorithms.inprocessing.prejudice_remover import PrejudiceRemover
 
-"""### ⚙️ Setup Pickle
+"""**Experience with the Model**  
+The PrejudiceRemover model is working on all our datasets.  
+The technique works on any probabilistic discriminative
+model.  
+The method provides a way to control the trade-off between the classication accuracy and the degree of resultant fairness by adjusting the regular-
+ization parameter which here is **eta**.  
+We did not had the time to play with the regulazation parameter.
+
+### ⚙️ Setup Pickle
 
 Pickle is a library that allows us to generate files out of complex variables.
 
@@ -582,7 +597,17 @@ def compute_metrics(test_dataset,
 
     return metrics_dict
 
-"""### ⚙️ Setup US Region Plotting"""
+"""### ⚙️ Setup US Region Plotting
+
+After a user trained our models we wanted to give some feedback on how well the model is working. 
+<br></br>
+We use plots of the regions/datasets to give an insight.
+In the plot you can see the selected metric and their value for each of the datasets. 
+If there is an overlap between datasets in certain states (e.g. urban and west coast) we use the mean of all values for the plotting.
+<br></br>
+Thus the user gets several plots as feedback.
+One with all selected datasets and then one for each individual dataset (total: num of datasets +1)
+"""
 
 import plotly.express as px
 import pandas as pd
@@ -591,6 +616,10 @@ import random
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from Levenshtein import distance as levenshtein_distance
+
+"""
+Not used in our plotting, but may still be useful
+"""
 
 def plot_us_states(state_codes, file_name=None):
     """
@@ -617,6 +646,16 @@ def plot_us_states(state_codes, file_name=None):
 
     fig.show()
 
+"""Main Region Plotting"""
+
+"""
+The main function for the region plotting. 
+It acts as a wrapper function and combines the plots from the plot_us_states_cholormap and plot_us_regions2 function. 
+The plot_us_states_cholormap function combines the different region datasets with their metrices in one plot
+and plot_us_regions2 gives a several plot for every region dataset and their metric.
+Because both functions take the same input but are working different internally we use this wrapper function.
+"""
+
 def plot_us_regions_and_states(regions, metric_values, metric=None, infos=None, file_name_pre=None):
     """
     Generate a plot of all regions together and a single plot for every region.
@@ -638,6 +677,14 @@ def plot_us_regions_and_states(regions, metric_values, metric=None, infos=None, 
     """
     plot_us_states_cholormap(regions, metric_values, metric=metric, infos=infos, file_name_pre=file_name_pre)
     plot_us_regions2(regions, metric_values, metric=metric, infos=infos, file_name_pre=file_name_pre)
+
+"""
+For our interactive gidtraining notebook we needed a function which visualizes the region datasets in several plots.
+The function takes regions and metrices and creates a plot for every region and his metric value.
+We also have the oppertunity to give a metric name (supported are: abroca, accuracy, f1score,disparate impact) which will change the cholorscale
+and makes the visualization easier for the used metric.
+While hovering over the colored states the user will get information about the state code, the metric value and region/dataset.
+"""
 
 def plot_us_regions2(regions, metric_values, metric=None, infos=None, file_name_pre=None):
     """
@@ -720,6 +767,17 @@ def plot_us_regions2(regions, metric_values, metric=None, infos=None, file_name_
       file_name = file_name + ".png"
       f.write_image(file_name)
       f.show()
+
+"""
+For our interactive gidtraining notebook we needed a function which visualizes the region datasets and metric values in one plot.
+The function takes regions and metrices and combines them in one plot.
+The color of the state is defined by his metric value.
+States can overlap because they can be part in several regions/dataset.
+For overlapping states we take the mean value of metric values which in most cases will create a new color,
+We also have the oppertunity to give a metric name (supported are: abroca, accuracy, f1score,disparate impact) which will change the cholorscale
+and makes the visualization easier for the given metric.
+While hovering over the colored states the user will get information about the state code, the metrics mean value, the regions/datasets and the metric values listed.
+"""
 
 def plot_us_states_cholormap(regions, metric_values, metric=None, infos=None, file_name_pre=None, ):
     """
@@ -814,6 +872,25 @@ def plot_us_states_cholormap(regions, metric_values, metric=None, infos=None, fi
     file_name = file_name + ".png"
     fig.write_image(file_name)
     fig.show()
+
+
+"""Notes:
+
+calc_nearest_state
+Helper function which gets us states as input and maps them to us states.
+The goal of the function is to handle typos.
+
+
+get_state_code
+Helper function because our chloropleth map from plotly we used for the state visualization needs state codes instead of the whole state name.
+The function convertes state names to state codes
+"""
+
+"""
+We needed a function which maps regions of usa to states of usa.
+The function gets a list of regions and converts every region in a list so the output is a list of state lists.
+We are using a list of list instead of set to differientiate the regions/datasets for our plots.
+"""
 
 def regions_to_states(regions: list):
   """ Gets regions and returns the euqivalent states for the regions
@@ -1210,7 +1287,7 @@ def grid_train_model_v2(datasets : list,years : list, models : list,thresholds =
 
         if verbose == 0:
           deafen(bias_model.fit,list_of_all_datasets_train[cur_dataset_num])
-        if verbose == 1:
+        if verbose > 0:
           print('-------------------------------------------------')
           print('Now starting training of adv. Deb. --- biased model on dataset:' + str(name_of_datasets[cur_dataset_num]) + ' year ' + str(list_of_years[cur_dataset_num]) + ' threshold ' + str(list_of_thresholds[cur_dataset_num]) )
           print('-------------------------------------------------')
@@ -1334,7 +1411,7 @@ def grid_train_model_v2(datasets : list,years : list, models : list,thresholds =
       """
       if verbose == 0:
           deafen(meta_fair_sr.fit,list_of_all_datasets_train[cur_dataset_num])
-      if verbose == 1:
+      if verbose >0:
         print('-------------------------------------------------')
         print('Now starting training of Metafair model on dataset:' + str(name_of_datasets[cur_dataset_num]) + ' year ' + str(list_of_years[cur_dataset_num]) + ' threshold ' + str(list_of_thresholds[cur_dataset_num]) )
         print('-------------------------------------------------')
@@ -1412,7 +1489,7 @@ def grid_train_model_v2(datasets : list,years : list, models : list,thresholds =
       """
       if verbose == 0:
           deafen(prejudiceremover_model.fit,list_of_all_datasets_train[cur_dataset_num])
-      if verbose == 1:
+      if verbose >0:
         print('-------------------------------------------------')
         print('Now starting training of PrejudiceRemover model on dataset:' + str(name_of_datasets[cur_dataset_num]) + ' year ' + str(list_of_years[cur_dataset_num]) + ' threshold ' + str(list_of_thresholds[cur_dataset_num]) )
         print('-------------------------------------------------')
@@ -1527,52 +1604,18 @@ This section shows the wide range of possible inputs our Grid Training framework
 ---
 
 
-When the setup finished, you can <font color='orange'>run the cell below</font> to start the interactive grid training.
+When the setup finished, you can <font color='orange'>run the cell below</font> to see an first example  of our training framework.
 
-Here, you can easily generate new data by setting your own parameters. Simply select all of the parameters you are interested in and then the <font color='orange'>run the cell below the paramters</font>. The Training will start.
+You can also generate new data by setting your own parameters. Simply change the inputs for the grid_train_model_v2 function. (see 'setup gridtraining')
 
-Note: The interesting information is in the metrics csv file.
+Once you run the cell the training will start.
 
-**Interpretation Guidelines**
-
-<table>
-  <tr>
-    <th>Parameter</th>
-    <th>Meaning</th>
-  </tr>
-  <tr>
-    <td>Evaluation Mode</td>
-    <td>Evaluate different models tested on the same dataset => mode <i>'test'</i> <br></br>Evaluate model trained on one dataset on multiple other datasets => mode <i>'train'</i></td>
-  </tr>
-  <tr>
-    <td>Evaluation Dataset</td>
-    <td>For which dataset do you want to explore metrics?</td>
-  </tr>
-  <tr>
-    <td>Evaluation Year</td>
-    <td>For which years do you want to explore metrics?</td>
-  </tr>
-  <tr>
-    <td>Income Threshold</td>
-    <td>For which threshold do you want to explore metrics?</td>
-  </tr>
-  <tr>
-    <td>Metric</td>
-    <td>Which metric do you want to plot?<br></br>Click <i>'Show Advanced Metrics'</i> to see all collected metrics.</td>
-  </tr>
-  <tr>
-    <td>Legend Position</td>
-    <td>(Where) do you want the legend to be placed?<br></br>Choose <i>'best'</i> for automatic placement.</td>
-  </tr>  
-</table>
-<br/><br/>
-
-**Have fun exploring the Data!**
+Note: The interesting information is in the metrics csv file. You should download it and use it for the metrics visualization.
 """
 
-datasets = ['rural']
+datasets = ['rural','south']
 
-years = ['2014']
+years = ['2014 2016','2014']
 
 models = ['Metafair'] 
 
